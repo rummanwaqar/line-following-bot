@@ -2,10 +2,13 @@ name: Deploy mdBook
 on: 
   push:
     branches: [ main ]
+    paths:
+      - 'book/**'
+      - '.github/workflows/deploy_book.yml'
 
 jobs:
   deploy:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
 
@@ -16,11 +19,11 @@ jobs:
 
       - name: Build mdbook 
         run: mdbook build
-        working-directory: ./doc_book
+        working-directory: ./book
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: ./doc_book/book
+          publish_dir: ./book/book
