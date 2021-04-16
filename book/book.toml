@@ -3,4 +3,4 @@ authors = ["Rumman Waqar"]
 language = "en"
 multilingual = false
 src = "src"
-title = "Line Following Robot in Rust"
+title = "Building a line following robot in Rust"
