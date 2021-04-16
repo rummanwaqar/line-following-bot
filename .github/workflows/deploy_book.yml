@@ -16,7 +16,7 @@ jobs:
 
       - name: Build mdbook 
         run: mdbook build
-        working-directory: scripts
+        working-directory: ./doc_book
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
