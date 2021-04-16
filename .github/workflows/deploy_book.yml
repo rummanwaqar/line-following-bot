@@ -2,12 +2,23 @@ name: Deploy mdBook
 on: 
   push:
     branches: [ main ]
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  deploy:
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
-      - uses: XAMPPRocky/deploy-mdbook@v1.1
+
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v1
         with:
-            token: ${{ secrets.GITHUB_TOKEN }}
-            workspace: doc_book
+          mdbook-version: 'latest'
+
+      - run: mdbook build
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./doc_book/book
