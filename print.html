@@ -97,7 +97,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter-01.html"><strong aria-hidden="true">1.</strong> Chapter 1</a></li><li class="chapter-item expanded "><a href="appendix-00.html"><strong aria-hidden="true">2.</strong> Appendix</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="appendix-01-setting-up-documentation.html"><strong aria-hidden="true">2.1.</strong> A - Setting up documentation</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="ch-00-00-hello-world.html"><strong aria-hidden="true">1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="appendix-00.html"><strong aria-hidden="true">2.</strong> Appendix</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="appendix-01-setting-up-documentation.html"><strong aria-hidden="true">2.1.</strong> A - Setting up documentation</a></li><li class="chapter-item expanded "><a href="appendix-02-flashing-firmware.html"><strong aria-hidden="true">2.2.</strong> B - Flashing firmware</a></li><li class="chapter-item expanded "><a href="appendix-03-hardware.html"><strong aria-hidden="true">2.3.</strong> C - Hardware</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -165,12 +165,115 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="chapter-1"><a class="header" href="#chapter-1">Chapter 1</a></h1>
+                        <h1 id="hello-world"><a class="header" href="#hello-world">Hello world</a></h1>
+<p><strong>The goal of this first step is to blink the LED and send strings to user over semi-hosting.</strong></p>
+<p><em>Follows <a href="https://github.com/stm32-rs/stm32f4xx-hal/blob/master/examples/delay-blinky.rs">blinky example</a> from <a href="https://github.com/stm32-rs/stm32f4xx-hal">stm32f4xx-hal</a></em></p>
+<h2 id="dependencies"><a class="header" href="#dependencies">Dependencies</a></h2>
+<ul>
+<li><code>cortex-m</code>: micro-architecture crate for cortex-m MCUs; routines and peripherals common to all micro-controllers using a 
+particular processor core</li>
+<li><code>cortex-m-rt</code>: startup code and minimal runtime for cortex-m MCUs</li>
+<li><code>stm32f4xx-hal</code>: HAL for STM32F4 MCUs; use features = [&quot;rt&quot;, &quot;stm32f411&quot;]</li>
+<li><code>cortex-m-semihosting</code>: implementation for communication over semihosting</li>
+<li><code>panic-halt</code>: specifies panic behaviour (halt)</li>
+</ul>
+<h2 id="memory-file"><a class="header" href="#memory-file">Memory file</a></h2>
+<p><code>cortex-m-rt</code> crate expects users to specify a memory.x file that specifies FLASH and
+RAM memory regions.</p>
+<pre><code>MEMORY
+{
+  FLASH : ORIGIN = 0x08000000, LENGTH = 512K 
+  RAM : ORIGIN = 0x20000000, LENGTH = 128K
+}
+
+_stack_start = ORIGIN(RAM) + LENGTH(RAM);
+</code></pre>
+<h2 id="cargoconfig-file"><a class="header" href="#cargoconfig-file">.cargo/config file</a></h2>
+<p>It specifices the build target for cross-compilation</p>
+<pre><code>[target.thumbv7em-none-eabihf]
+rustflags = [
+  &quot;-C&quot;, &quot;link-arg=-Tlink.x&quot;,
+]
+
+[build]
+target = &quot;thumbv7em-none-eabihf&quot;
+</code></pre>
+<h2 id="code"><a class="header" href="#code">Code</a></h2>
+<pre><code class="language-C++">#![no_main]
+#![no_std]
+
+use panic_halt as _;
+
+use cortex_m;
+use cortex_m_rt::entry;
+use cortex_m_semihosting::hprintln;
+use stm32f4xx_hal as hal;
+
+use crate::hal::{prelude::*, stm32};
+
+#[entry]
+fn main() -&gt; ! {
+    if let (Some(dp), Some(cp)) = (
+        stm32::Peripherals::take(),
+        cortex_m::peripheral::Peripherals::take()
+    ) {
+        // set up the LED (PC13)
+        let gpioc = dp.GPIOC.split();
+        let mut led = gpioc.pc13.into_push_pull_output();
+
+        // set up the system clock
+        let rcc = dp.RCC.constrain();
+        let clocks = rcc.cfgr.sysclk(100.mhz()).freeze();
+        
+        // create a delay abstraction based on system tick
+        let mut delay = hal::delay::Delay::new(cp.SYST, clocks);
+
+        loop {
+            led.set_high().unwrap();
+            delay.delay_ms(1000_u32);
+            led.set_low().unwrap();
+            delay.delay_ms(1000_u32);
+            hprintln!(&quot;Hello world!&quot;).unwrap();
+        }
+    }
+    loop {}
+}
+
+</code></pre>
 <h1 id="appendix"><a class="header" href="#appendix">Appendix</a></h1>
 <p>The following sections contain reference material unrelated to the core project 
 that you may find useful.</p>
 <h2 id="appendix-a-setting-up-documentation"><a class="header" href="#appendix-a-setting-up-documentation">Appendix A: Setting up documentation</a></h2>
 <p>This documentation was built with <a href="https://rust-lang.github.io/mdBook/">mdBook</a>. It is a rust crate to create books using Markdown. The book is automatically deployed to Github pages using <a href="./github/workflows/deploy_book.yml">this action</a>.</p>
+<h2 id="appendix-b-flashing-firmware-to-hardware"><a class="header" href="#appendix-b-flashing-firmware-to-hardware">Appendix B: Flashing firmware to hardware</a></h2>
+<h3 id="flashing-with-openocd-and-gdb"><a class="header" href="#flashing-with-openocd-and-gdb">Flashing with OpenOCD and GDB</a></h3>
+<p>Start OpenOCD</p>
+<pre><code>openocd -f interface/stlink-v2.cfg -f target/stm32f4x.cfg
+</code></pre>
+<p>Start GDB with the elf file</p>
+<pre><code>gdb-multiarch target/thumbv7em-none-eabihf/debug/line-following-bot
+</code></pre>
+<p>Then run the following commands in GDB</p>
+<ol>
+<li><code>target remote :3333</code></li>
+<li><code>load</code></li>
+<li><code>quit</code></li>
+</ol>
+<p><em>Note: Semihosting can be enabled with the following gdb command:
+<code>monitor arm semihosting enable</code></em></p>
+<h3 id="flashing-with-dfu-util"><a class="header" href="#flashing-with-dfu-util">Flashing with DFU-util</a></h3>
+<p>DFU-util requires a binary file. The rust ELF file can be converted using objcopy</p>
+<pre><code>arm-none-eabi-objcopy -O binary target/thumbv7em-none-eabihf/release/line-following-bot target/thumbv7em-none-eabihf/release/line-following-bot.bin
+</code></pre>
+<p>Flash with DFU-util</p>
+<pre><code>dfu-util -a0 --dfuse-address 0x08000000 -D target/thumbv7em-none-eabihf/release/line-following-bot.bin
+</code></pre>
+<h2 id="appendix-c-hardware"><a class="header" href="#appendix-c-hardware">Appendix C: Hardware</a></h2>
+<p>Hardware: </p>
+<ul>
+<li><a href="https://stm32-base.org/boards/STM32F411CEU6-WeAct-Black-Pill-V2.0.html">STM32 Black Pill v2</a></li>
+<li><a href="https://www.adafruit.com/product/2548">ST-Link V2 Compatible Programmer</a></li>
+</ul>
 
                     </main>
 

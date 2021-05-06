@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Appendix - Building a line following robot in Rust</title>
+        <title>B - Flashing firmware - Building a line following robot in Rust</title>
         
         
 
@@ -95,7 +95,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="ch-00-00-hello-world.html"><strong aria-hidden="true">1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="appendix-00.html" class="active"><strong aria-hidden="true">2.</strong> Appendix</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="appendix-01-setting-up-documentation.html"><strong aria-hidden="true">2.1.</strong> A - Setting up documentation</a></li><li class="chapter-item expanded "><a href="appendix-02-flashing-firmware.html"><strong aria-hidden="true">2.2.</strong> B - Flashing firmware</a></li><li class="chapter-item expanded "><a href="appendix-03-hardware.html"><strong aria-hidden="true">2.3.</strong> C - Hardware</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="ch-00-00-hello-world.html"><strong aria-hidden="true">1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="appendix-00.html"><strong aria-hidden="true">2.</strong> Appendix</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="appendix-01-setting-up-documentation.html"><strong aria-hidden="true">2.1.</strong> A - Setting up documentation</a></li><li class="chapter-item expanded "><a href="appendix-02-flashing-firmware.html" class="active"><strong aria-hidden="true">2.2.</strong> B - Flashing firmware</a></li><li class="chapter-item expanded "><a href="appendix-03-hardware.html"><strong aria-hidden="true">2.3.</strong> C - Hardware</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -163,22 +163,42 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="appendix"><a class="header" href="#appendix">Appendix</a></h1>
-<p>The following sections contain reference material unrelated to the core project 
-that you may find useful.</p>
+                        <h2 id="appendix-b-flashing-firmware-to-hardware"><a class="header" href="#appendix-b-flashing-firmware-to-hardware">Appendix B: Flashing firmware to hardware</a></h2>
+<h3 id="flashing-with-openocd-and-gdb"><a class="header" href="#flashing-with-openocd-and-gdb">Flashing with OpenOCD and GDB</a></h3>
+<p>Start OpenOCD</p>
+<pre><code>openocd -f interface/stlink-v2.cfg -f target/stm32f4x.cfg
+</code></pre>
+<p>Start GDB with the elf file</p>
+<pre><code>gdb-multiarch target/thumbv7em-none-eabihf/debug/line-following-bot
+</code></pre>
+<p>Then run the following commands in GDB</p>
+<ol>
+<li><code>target remote :3333</code></li>
+<li><code>load</code></li>
+<li><code>quit</code></li>
+</ol>
+<p><em>Note: Semihosting can be enabled with the following gdb command:
+<code>monitor arm semihosting enable</code></em></p>
+<h3 id="flashing-with-dfu-util"><a class="header" href="#flashing-with-dfu-util">Flashing with DFU-util</a></h3>
+<p>DFU-util requires a binary file. The rust ELF file can be converted using objcopy</p>
+<pre><code>arm-none-eabi-objcopy -O binary target/thumbv7em-none-eabihf/release/line-following-bot target/thumbv7em-none-eabihf/release/line-following-bot.bin
+</code></pre>
+<p>Flash with DFU-util</p>
+<pre><code>dfu-util -a0 --dfuse-address 0x08000000 -D target/thumbv7em-none-eabihf/release/line-following-bot.bin
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="ch-00-00-hello-world.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="appendix-01-setting-up-documentation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
                         
-                            <a rel="next" href="appendix-01-setting-up-documentation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="appendix-03-hardware.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -190,13 +210,13 @@ that you may find useful.</p>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a rel="prev" href="ch-00-00-hello-world.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="appendix-01-setting-up-documentation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
                 
-                    <a rel="next" href="appendix-01-setting-up-documentation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="appendix-03-hardware.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 
