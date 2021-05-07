@@ -1,7 +1,9 @@
+[build]
+target = "thumbv7em-none-eabihf"
+
 [target.thumbv7em-none-eabihf]
+runner = "gdb-multiarch -tui -q -x debug.gdb"
 rustflags = [
   "-C", "link-arg=-Tlink.x",
 ]
 
-[build]
-target = "thumbv7em-none-eabihf"
